@@ -1,8 +1,5 @@
-package com.changa.book.controller;
+package com.changa.exception;
 
-import com.changa.book.domain.dto.ErrorResponseDto;
-import com.changa.book.exception.BookNotFoundException;
-import com.changa.book.exception.DuplicateBookException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,11 +64,43 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
 
         ErrorResponseDto errorResponseDto = new ErrorResponseDto(
-                "Invalid value for parameter '%s'.".formatted(ex.getMessage())
+                "Invalid value '%s' for parameter '%s'.".formatted(
+                        ex.getValue(),
+                        ex.getName())
         );
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponseDto);
+    }
+
+    @ExceptionHandler(InvalidReadingEntryException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidReadingEntry(InvalidReadingEntryException ex) {
+
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponseDto);
+    }
+
+    @ExceptionHandler(DuplicateReadingEntryException.class)
+    public ResponseEntity<ErrorResponseDto> handleDuplicateReadingEntryException(DuplicateReadingEntryException ex) {
+
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponseDto);
+    }
+
+    @ExceptionHandler(ReadingEntryNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleReadingEntryNotFoundException(ReadingEntryNotFoundException ex) {
+
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(errorResponseDto);
     }
 }

@@ -1,4 +1,4 @@
-package com.changa.book.domain.dto;
+package com.changa.exception;
 
 public record ErrorResponseDto(String error) {
 }
