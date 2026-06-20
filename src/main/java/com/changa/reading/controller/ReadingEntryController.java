@@ -6,7 +6,6 @@ import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
 import com.changa.reading.domain.dto.ReadingEntryDto;
 import com.changa.reading.domain.dto.UpdateReadingEntryRequestDto;
 import com.changa.reading.domain.entity.ReadingEntry;
-import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.reading.mapper.ReadingEntryMapper;
 import com.changa.reading.service.ReadingEntryService;
 import jakarta.validation.Valid;

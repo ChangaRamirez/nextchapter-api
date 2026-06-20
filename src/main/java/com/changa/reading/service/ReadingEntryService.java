@@ -3,6 +3,7 @@ package com.changa.reading.service;
 import com.changa.reading.domain.CreateReadingEntryRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
+import com.changa.reading.domain.entity.ReadingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
