@@ -58,7 +58,7 @@ public class BookController {
     }
 
     @GetMapping(path = "/{bookId}")
-    public ResponseEntity<BookDto> getBook(
+    public ResponseEntity<BookDto> getBookById(
             @PathVariable("bookId") UUID bookId) {
 
         Book foundBook = bookService.getBookById(bookId);

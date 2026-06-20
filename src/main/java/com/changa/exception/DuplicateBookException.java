@@ -1,4 +1,4 @@
-package com.changa.book.exception;
+package com.changa.exception;
 
 public class DuplicateBookException extends RuntimeException {
     public DuplicateBookException(String isbn) {

@@ -16,6 +16,7 @@ public record CreateBookRequestDto(
         String title,
 
         @Length(max = 1000, message = ERROR_MESSAGE_DESCRIPTION_LENGTH)
+        @Nullable
         String description,
 
         @NotBlank(message = ERROR_MESSAGE_ISBN_LENGTH)

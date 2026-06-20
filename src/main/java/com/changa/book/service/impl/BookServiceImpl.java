@@ -4,8 +4,8 @@ import com.changa.book.domain.CreateBookRequest;
 import com.changa.book.domain.UpdateBookRequest;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
-import com.changa.book.exception.BookNotFoundException;
-import com.changa.book.exception.DuplicateBookException;
+import com.changa.exception.BookNotFoundException;
+import com.changa.exception.DuplicateBookException;
 import com.changa.book.repository.BookRepository;
 import com.changa.book.service.BookService;
 import org.springframework.data.domain.Page;
@@ -55,8 +55,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(UUID bookId) {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byID(bookId));
-        return existingBook;
+        return bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byId(bookId));
     }
 
     @Override
@@ -95,7 +94,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book updateBook(UUID bookId, UpdateBookRequest request) {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byID(bookId));
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byId(bookId));
 
         existingBook.setTitle(request.title());
         existingBook.setDescription(request.description());
@@ -110,7 +109,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBook(UUID bookId) {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byID(bookId));
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.byId(bookId));
 
         bookRepository.deleteById(bookId);
     }

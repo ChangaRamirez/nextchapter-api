@@ -1,4 +1,4 @@
-package com.changa.book.exception;
+package com.changa.exception;
 
 import java.util.UUID;
 
@@ -8,7 +8,7 @@ public class BookNotFoundException extends RuntimeException {
         super(message);
     }
 
-    public static BookNotFoundException byID(UUID id) {
+    public static BookNotFoundException byId(UUID id) {
         return new BookNotFoundException(
                 "Book with ID '%s' does not exist".formatted(id)
         );
