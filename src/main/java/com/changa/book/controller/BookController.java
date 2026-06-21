@@ -79,6 +79,19 @@ public class BookController {
         return ResponseEntity.ok(bookDto);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<BookDto>> searchBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) BookGenre genre,
+            @RequestParam(required = false) Integer publicationYear,
+            @PageableDefault(value = 10, sort = "title") Pageable pageable) {
+
+        Page<Book> books = bookService.searchBooks(title, author, genre, publicationYear, pageable);
+
+        return ResponseEntity.ok(books.map(bookMapper::toDto));
+    }
+
     @GetMapping("/search/title")
     public ResponseEntity<Page<BookDto>> searchBooksByTitle(
             @RequestParam("title") String bookTitle,

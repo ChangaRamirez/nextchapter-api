@@ -4,12 +4,14 @@ import com.changa.book.domain.CreateBookRequest;
 import com.changa.book.domain.UpdateBookRequest;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.specification.BookSpecification;
 import com.changa.exception.BookNotFoundException;
 import com.changa.exception.DuplicateBookException;
 import com.changa.book.repository.BookRepository;
 import com.changa.book.service.BookService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -85,6 +87,29 @@ public class BookServiceImpl implements BookService {
     @Override
     public Page<Book> searchBooksByYearRange(Integer from, Integer to, Pageable pageable) {
         return bookRepository.findByPublicationYearBetween(from, to, pageable);
+    }
+
+    @Override
+    public Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, Pageable pageable) {
+        Specification<Book> spec = (root, query, cb) -> cb.conjunction();
+
+        if (title != null && !title.isBlank()) {
+            spec = spec.and(BookSpecification.titleContains(title.trim()));
+        }
+
+        if (author != null && !author.isBlank()) {
+            spec = spec.and(BookSpecification.authorContains(author.trim()));
+        }
+
+        if (genre != null) {
+            spec = spec.and(BookSpecification.hasGenre(genre));
+        }
+
+        if(publicationYear != null) {
+            spec = spec.and(BookSpecification.hasPublicationYear(publicationYear));
+        }
+
+        return bookRepository.findAll(spec, pageable);
     }
 
     @Override

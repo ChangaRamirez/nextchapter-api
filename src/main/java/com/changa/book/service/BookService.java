@@ -27,6 +27,8 @@ public interface BookService {
 
     Page<Book> searchBooksByYearRange(Integer from, Integer to, Pageable pageable);
 
+    Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, Pageable pageable);
+
     List<String> listAuthors();
 
     Book updateBook(UUID bookId, UpdateBookRequest request);
