@@ -1,6 +1,7 @@
 package com.changa.reading.domain.entity;
 
 import com.changa.book.domain.entity.Book;
+import com.changa.user.domain.entity.User;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -16,6 +17,10 @@ public class ReadingEntry {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name ="user_id", nullable = false)
+    private User user;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "book_id", nullable = false)
@@ -45,8 +50,9 @@ public class ReadingEntry {
     public ReadingEntry() {
     }
 
-    public ReadingEntry(UUID id, Book book, ReadingStatus status, Integer rating, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
+    public ReadingEntry(UUID id, User user, Book book, ReadingStatus status, Integer rating, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
         this.id = id;
+        this.user = user;
         this.book = book;
         this.status = status;
         this.rating = rating;
@@ -58,6 +64,10 @@ public class ReadingEntry {
 
     public UUID getId() {
         return id;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public Book getBook() {

@@ -10,6 +10,9 @@ import java.util.UUID;
 
 public record CreateReadingEntryRequestDto(
 
+        @NotNull(message = ERROR_MESSAGE_USER_ID_REQUIRED)
+        UUID userId,
+
         @NotNull(message = ERROR_MESSAGE_BOOK_ID_REQUIRED)
         UUID bookId,
 
@@ -30,8 +33,10 @@ public record CreateReadingEntryRequestDto(
         LocalDate finishedAt
 
 ) {
+    private static final String ERROR_MESSAGE_USER_ID_REQUIRED =
+            "User ID must be provided";
     private static final String ERROR_MESSAGE_BOOK_ID_REQUIRED =
-            "ID must be provided";
+            "Book ID must be provided";
     private static final String ERROR_MESSAGE_STATUS_REQUIRED =
             "Reading status must be provided";
     private static final String ERROR_MESSAGE_RATING_RANGE =

@@ -2,16 +2,15 @@ package com.changa.reading.service.impl;
 
 import com.changa.book.domain.entity.Book;
 import com.changa.book.repository.BookRepository;
-import com.changa.exception.BookNotFoundException;
-import com.changa.exception.DuplicateReadingEntryException;
-import com.changa.exception.InvalidReadingEntryException;
-import com.changa.exception.ReadingEntryNotFoundException;
+import com.changa.exception.*;
 import com.changa.reading.domain.CreateReadingEntryRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.reading.repository.ReadingEntryRepository;
 import com.changa.reading.service.ReadingEntryService;
+import com.changa.user.domain.entity.User;
+import com.changa.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,18 +25,22 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
 
     private final ReadingEntryRepository readingEntryRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
-    public ReadingEntryServiceImpl(ReadingEntryRepository readingEntryRepository, BookRepository bookRepository) {
+    public ReadingEntryServiceImpl(ReadingEntryRepository readingEntryRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.readingEntryRepository = readingEntryRepository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public ReadingEntry createReadingEntry(CreateReadingEntryRequest request) {
 
+        User existingUser = userRepository.findById(request.userId()).orElseThrow(() -> UserNotFoundException.byId(request.userId()));
+
         Book existingBook = bookRepository.findById(request.bookId()).orElseThrow(() -> BookNotFoundException.byId(request.bookId()));
 
-        if (readingEntryRepository.existsByBook_Id(request.bookId())) {
+        if (readingEntryRepository.existsByUser_IdAndBook_Id(request.userId(), request.bookId())) {
             throw new DuplicateReadingEntryException(request.bookId());
         }
 
@@ -47,6 +50,7 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
 
         ReadingEntry newReadingEntry = new ReadingEntry(
                 null,
+                existingUser,
                 existingBook,
                 request.status(),
                 request.rating(),

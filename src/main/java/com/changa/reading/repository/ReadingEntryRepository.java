@@ -16,6 +16,8 @@ public interface ReadingEntryRepository extends JpaRepository<ReadingEntry, UUID
 
     boolean existsByBook_Id(UUID id);
 
+    boolean existsByUser_IdAndBook_Id(UUID userId, UUID bookId);
+
     long countByStatus(ReadingStatus status);
 
     @Query("""
