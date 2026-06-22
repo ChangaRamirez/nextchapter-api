@@ -10,9 +10,6 @@ import java.util.UUID;
 
 public record CreateReadingEntryRequestDto(
 
-        @NotNull(message = ERROR_MESSAGE_USER_ID_REQUIRED)
-        UUID userId,
-
         @NotNull(message = ERROR_MESSAGE_BOOK_ID_REQUIRED)
         UUID bookId,
 

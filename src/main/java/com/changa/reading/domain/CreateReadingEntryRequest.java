@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record CreateReadingEntryRequest(
-        UUID userId,
         UUID bookId,
         ReadingStatus status,
         Integer rating,
