@@ -12,4 +12,10 @@ public class UserNotFoundException extends RuntimeException {
                 "User with ID '%s' does not exist".formatted(id)
         );
     }
+
+    public static UserNotFoundException byEmail(String email) {
+        return new UserNotFoundException(
+                "User with email '%s' does not exist".formatted(email)
+        );
+    }
 }
