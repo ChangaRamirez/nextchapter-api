@@ -45,6 +45,17 @@ public class ReadingEntryController {
                 .body(createdReadingEntryDto);
     }
 
+    @GetMapping
+    public ResponseEntity<Page<ReadingEntryDto>> listReadingEntries(
+            @PageableDefault(value = 10, sort = "created")Pageable pageable) {
+
+        Page<ReadingEntry> readingEntries = readingEntryService.listReadingEntries(pageable);
+
+        Page<ReadingEntryDto> readingEntryDto = readingEntries.map(readingEntryMapper::toDto);
+
+        return ResponseEntity.ok(readingEntryDto);
+    }
+
     @GetMapping(path = "/{readingEntryId}")
     public ResponseEntity<ReadingEntryDto> getReadingEntryById(
             @PathVariable("readingEntryId") UUID readingEntryId) {
@@ -54,17 +65,6 @@ public class ReadingEntryController {
         ReadingEntryDto readingEntryDto = readingEntryMapper.toDto(foundReadingEntry);
 
         return ResponseEntity.ok(readingEntryDto);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<ReadingEntryDto>> listReadingEntries(
-            @PageableDefault(value = 10, sort = "created")Pageable pageable) {
-
-        Page<ReadingEntry> readingEntries = readingEntryService.listReadingEntries(pageable);
-
-        Page<ReadingEntryDto> readingEntryDtos = readingEntries.map(readingEntryMapper::toDto);
-
-        return ResponseEntity.ok(readingEntryDtos);
     }
 
     @GetMapping("/recent")

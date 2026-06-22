@@ -1,19 +1,20 @@
 package com.changa.reading.service.impl;
 
+import com.changa.auth.service.AuthenticatedUserService;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.repository.BookRepository;
-import com.changa.exception.BookNotFoundException;
-import com.changa.exception.DuplicateReadingEntryException;
-import com.changa.exception.InvalidReadingEntryException;
-import com.changa.exception.ReadingEntryNotFoundException;
+import com.changa.exception.*;
 import com.changa.reading.domain.CreateReadingEntryRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.reading.repository.ReadingEntryRepository;
 import com.changa.reading.service.ReadingEntryService;
+import com.changa.user.domain.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,18 +27,22 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
 
     private final ReadingEntryRepository readingEntryRepository;
     private final BookRepository bookRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
-    public ReadingEntryServiceImpl(ReadingEntryRepository readingEntryRepository, BookRepository bookRepository) {
+    public ReadingEntryServiceImpl(ReadingEntryRepository readingEntryRepository, BookRepository bookRepository, AuthenticatedUserService authenticatedUserService) {
         this.readingEntryRepository = readingEntryRepository;
         this.bookRepository = bookRepository;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     @Override
     public ReadingEntry createReadingEntry(CreateReadingEntryRequest request) {
 
+        User currentUser = authenticatedUserService.getCurrentUser();
+
         Book existingBook = bookRepository.findById(request.bookId()).orElseThrow(() -> BookNotFoundException.byId(request.bookId()));
 
-        if (readingEntryRepository.existsByBook_Id(request.bookId())) {
+        if (readingEntryRepository.existsByUser_IdAndBook_Id(currentUser.getId(), request.bookId())) {
             throw new DuplicateReadingEntryException(request.bookId());
         }
 
@@ -47,6 +52,7 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
 
         ReadingEntry newReadingEntry = new ReadingEntry(
                 null,
+                currentUser,
                 existingBook,
                 request.status(),
                 request.rating(),
@@ -60,15 +66,19 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
     }
 
     @Override
-    public ReadingEntry getReadingEntryById(UUID readingEntryId) {
+    public Page<ReadingEntry> listReadingEntries(Pageable pageable) {
+        User user = authenticatedUserService.getCurrentUser();
 
-        return readingEntryRepository.findById(readingEntryId).orElseThrow(() ->
-                ReadingEntryNotFoundException.byId(readingEntryId));
+        return readingEntryRepository.findByUser_Id(user.getId(), pageable);
     }
 
     @Override
-    public Page<ReadingEntry> listReadingEntries(Pageable pageable) {
-        return readingEntryRepository.findAll(pageable);
+    public ReadingEntry getReadingEntryById(UUID readingEntryId) {
+
+        User user = authenticatedUserService.getCurrentUser();
+
+        return readingEntryRepository.findByIdAndUser_Id(readingEntryId, user.getId()).orElseThrow(() ->
+                ReadingEntryNotFoundException.byId(readingEntryId));
     }
 
     @Override
@@ -79,15 +89,19 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
             throw new InvalidReadingEntryException("Days must be less than 3650");
         }
 
+        User user = authenticatedUserService.getCurrentUser();
+
         Instant from = Instant.now().minus(days, ChronoUnit.DAYS);
 
-        return readingEntryRepository.findByCreatedGreaterThanEqual(from, pageable);
+        return readingEntryRepository.findByCreatedGreaterThanEqualAndUser_Id(from, user.getId(), pageable);
     }
 
     @Override
     public ReadingEntry updateReadingEntry(UUID readingEntryId, UpdateReadingEntryRequest request) {
 
-        ReadingEntry existingReadingEntry = readingEntryRepository.findById(readingEntryId).orElseThrow(() ->
+        User user = authenticatedUserService.getCurrentUser();
+
+        ReadingEntry existingReadingEntry = readingEntryRepository.findByIdAndUser_Id(readingEntryId, user.getId()).orElseThrow(() ->
                 ReadingEntryNotFoundException.byId(readingEntryId));
 
         validateReadingEntryFields(request.status(), request.rating(), request.startedAt(), request.finishedAt());
@@ -104,7 +118,9 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
 
     @Override
     public void deleteReadingEntry(UUID readingEntryId) {
-        ReadingEntry existingReadingEntry = readingEntryRepository.findById(readingEntryId).orElseThrow(() ->
+        User user = authenticatedUserService.getCurrentUser();
+
+        ReadingEntry existingReadingEntry = readingEntryRepository.findByIdAndUser_Id(readingEntryId, user.getId()).orElseThrow(() ->
                 ReadingEntryNotFoundException.byId(readingEntryId));
 
         readingEntryRepository.delete(existingReadingEntry);
@@ -123,4 +139,5 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
             throw new InvalidReadingEntryException("A FINISHED entry must have a finished date.");
         }
     }
+
 }

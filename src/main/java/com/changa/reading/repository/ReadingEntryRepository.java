@@ -8,20 +8,28 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReadingEntryRepository extends JpaRepository<ReadingEntry, UUID> {
 
-    Page<ReadingEntry> findByCreatedGreaterThanEqual(Instant createdAfter, Pageable pageable);
+    Page<ReadingEntry> findByUser_Id(UUID userId, Pageable pageable);
 
-    boolean existsByBook_Id(UUID id);
+    Optional<ReadingEntry> findByIdAndUser_Id(UUID readingEntryId, UUID userId);
 
-    long countByStatus(ReadingStatus status);
+    Page<ReadingEntry> findByCreatedGreaterThanEqualAndUser_Id(Instant createdAfter, UUID userId, Pageable pageable);
+
+    boolean existsByUser_IdAndBook_Id(UUID userId, UUID bookId);
+
+    long countByStatusAndUser_Id(ReadingStatus status, UUID userId);
+
+    long countByUser_Id(UUID userId);
 
     @Query("""
             SELECT AVG(r.rating)
             FROM ReadingEntry r
             WHERE r.rating IS NOT NULL
+            AND r.user.id = :userId
             """)
-    Double findAverageRating();
+    Double findAverageRating(UUID userId);
 }
