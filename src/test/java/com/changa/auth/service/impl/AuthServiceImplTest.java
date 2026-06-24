@@ -1,9 +1,9 @@
-package com.changa.auth.service;
+package com.changa.auth.service.impl;
 
 import com.changa.auth.dto.AuthResponseDto;
 import com.changa.auth.dto.LoginRequestDto;
 import com.changa.auth.dto.RegisterRequestDto;
-import com.changa.auth.service.impl.AuthServiceImpl;
+import com.changa.auth.service.JwtService;
 import com.changa.exception.DuplicateEmailException;
 import com.changa.exception.InvalidCredentialsException;
 import com.changa.user.domain.entity.User;
