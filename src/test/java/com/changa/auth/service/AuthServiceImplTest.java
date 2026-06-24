@@ -41,11 +41,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_shouldThrowDuplicateEmailException_whenEmailAlreadyExists() {
-        RegisterRequestDto request = new RegisterRequestDto(
-                "Eduardo",
-                "eduardo@test.com",
-                "password123"
-        );
+        RegisterRequestDto request = createRegisterRequestDto();
 
         when(userRepository.existsByEmail("eduardo@test.com"))
                 .thenReturn(true);
@@ -56,11 +52,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_shouldSaveUserWithEncodedPassword_whenEmailIsAvailable() {
-        RegisterRequestDto request = new RegisterRequestDto(
-                "Eduardo",
-                "eduardo@test.com",
-                "password123"
-        );
+        RegisterRequestDto request = createRegisterRequestDto();
 
         when(userRepository.existsByEmail("eduardo@test.com"))
                 .thenReturn(false);
@@ -86,11 +78,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_shouldReturnTokenAndUserInfo_whenEmailIsAvailable() {
-        RegisterRequestDto request = new RegisterRequestDto(
-                "Eduardo",
-                "eduardo@test.com",
-                "password123"
-        );
+        RegisterRequestDto request = createRegisterRequestDto();
 
         when(userRepository.existsByEmail("eduardo@test.com"))
                 .thenReturn(false);
@@ -117,10 +105,7 @@ class AuthServiceImplTest {
 
     @Test
     void login_shouldReturnTokenAndUserInfo_whenCredentialsAreValid() {
-        LoginRequestDto request = new LoginRequestDto(
-                "eduardo@test.com",
-                "password123"
-        );
+        LoginRequestDto request = createLoginRequestDto();
 
         User foundUser = new User(
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
@@ -153,10 +138,7 @@ class AuthServiceImplTest {
 
     @Test
     void login_shouldThrowInvalidCredentialsException_whenEmailDoesNotExist() {
-        LoginRequestDto request = new LoginRequestDto(
-                "eduardo@test.com",
-                "password123"
-        );
+        LoginRequestDto request = createLoginRequestDto();
 
         when(userRepository.findByEmail("eduardo@test.com"))
                 .thenReturn(Optional.empty());
@@ -167,10 +149,7 @@ class AuthServiceImplTest {
 
     @Test
     void login_shouldThrowInvalidCredentialsException_whenPasswordDoesNotMatch() {
-        LoginRequestDto request = new LoginRequestDto(
-                "eduardo@test.com",
-                "password123"
-        );
+        LoginRequestDto request = createLoginRequestDto();
 
         User foundUser = new User(
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
@@ -192,10 +171,7 @@ class AuthServiceImplTest {
 
     @Test
     void login_shouldNotGenerateToken_whenPasswordDoesNotMatch() {
-        LoginRequestDto request = new LoginRequestDto(
-                "eduardo@test.com",
-                "password123"
-        );
+        LoginRequestDto request = createLoginRequestDto();
 
         User foundUser = new User(
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
@@ -215,5 +191,20 @@ class AuthServiceImplTest {
                 .isInstanceOf(InvalidCredentialsException.class);
 
         verify(jwtService, never()).generateToken(foundUser);
+    }
+
+    private RegisterRequestDto createRegisterRequestDto() {
+        return new RegisterRequestDto(
+                "Eduardo",
+                "eduardo@test.com",
+                "password123"
+        );
+    }
+
+    private LoginRequestDto createLoginRequestDto() {
+        return new LoginRequestDto(
+                "eduardo@test.com",
+                "password123"
+        );
     }
 }
