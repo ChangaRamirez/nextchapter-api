@@ -1,0 +1,43 @@
+name: goodreads-api
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: goodreads-mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - goodreads_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_password" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    image: goodreads-api:latest
+    container_name: goodreads-api
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO}
+      SHOW_SQL: ${SHOW_SQL}
+      GOODREADS_JWT_SECRET: ${GOODREADS_JWT_SECRET}
+      GOODREADS_JWT_EXPIRATION_MS: ${GOODREADS_JWT_EXPIRATION_MS}
+      SERVER_PORT: ${SERVER_PORT}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  goodreads_mysql_data:
