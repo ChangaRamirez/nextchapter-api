@@ -13,5 +13,4 @@ public record BookDto(
         String author,
         Set<BookGenre> genres,
         Integer publicationYear
-) {
-}
+) {}
