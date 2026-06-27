@@ -13,6 +13,8 @@ public record ReadingEntryDto(
         String bookTitle,
         ReadingStatus status,
         Integer rating,
+        String review,
+        String notes,
         LocalDate startedAt,
         LocalDate finishedAt
 ) {

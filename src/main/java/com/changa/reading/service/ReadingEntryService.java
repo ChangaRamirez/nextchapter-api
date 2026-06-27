@@ -1,6 +1,7 @@
 package com.changa.reading.service;
 
 import com.changa.reading.domain.CreateReadingEntryRequest;
+import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
@@ -21,6 +22,8 @@ public interface ReadingEntryService {
     Page<ReadingEntry> searchRecentReadingEntries(Integer days, Pageable pageable);
 
     ReadingEntry updateReadingEntry(UUID readingEntryId, UpdateReadingEntryRequest request);
+
+    ReadingEntry updateReadingEntryNotes(UUID readingEntryId, UpdateReadingEntryNotesRequest request);
 
     void deleteReadingEntry(UUID readingEntryId);
 }
