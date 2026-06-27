@@ -50,6 +50,8 @@ public final class TestDataFactory {
                 book,
                 ReadingStatus.FINISHED,
                 6,
+                null,
+                null,
                 LocalDate.parse("2025-01-15"),
                 LocalDate.parse("2025-02-01"),
                 Instant.now(),

@@ -34,6 +34,11 @@ public class ReadingEntry {
     private Integer rating;
 
     // Consider adding a new entity UserNote for a List of notes with more features later
+    @Column(name = "review", length = 2000)
+    private String review;
+
+    @Column(name = "notes", length = 5000)
+    private String notes;
 
     @Column(name = "started_at")
     private LocalDate startedAt;
@@ -50,12 +55,14 @@ public class ReadingEntry {
     public ReadingEntry() {
     }
 
-    public ReadingEntry(UUID id, User user, Book book, ReadingStatus status, Integer rating, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
+    public ReadingEntry(UUID id, User user, Book book, ReadingStatus status, Integer rating, String review, String notes, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
         this.id = id;
         this.user = user;
         this.book = book;
         this.status = status;
         this.rating = rating;
+        this.review = review;
+        this.notes = notes;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
         this.created = created;
@@ -88,6 +95,22 @@ public class ReadingEntry {
 
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public String getReview() {
+        return review;
+    }
+
+    public void setReview(String review) {
+        this.review = review;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public LocalDate getStartedAt() {

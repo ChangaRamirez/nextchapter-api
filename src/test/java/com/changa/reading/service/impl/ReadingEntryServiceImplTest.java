@@ -9,6 +9,7 @@ import com.changa.exception.DuplicateReadingEntryException;
 import com.changa.exception.InvalidReadingEntryException;
 import com.changa.exception.ReadingEntryNotFoundException;
 import com.changa.reading.domain.CreateReadingEntryRequest;
+import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
@@ -256,6 +257,8 @@ class ReadingEntryServiceImplTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 Instant.now(),
                 Instant.now()
         );
@@ -339,6 +342,176 @@ class ReadingEntryServiceImplTest {
 
         verify(readingEntryRepository, never()).save(any(ReadingEntry.class));
 
+    }
+
+    @Test
+    void updateReadingEntryNotes_shouldUpdateEntryNotes_whenEntryBelongsToCurrentUser() {
+
+        User currentUser = createUser();
+
+        Book existingBook = createBook();
+
+        ReadingEntry existingReadingEntry = createReadingEntry(currentUser, existingBook);
+
+        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
+                "Great book, bad ending. Would recommend.",
+                "Have to check again p. 155-200 for continuity"
+        );
+
+        when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
+        when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
+        when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReadingEntry response = readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request);
+
+        assertThat(response.getReview()).isEqualTo(request.review());
+        assertThat(response.getNotes()).isEqualTo(request.notes());
+        assertThat(response.getUpdated()).isNotNull();
+
+        verify(readingEntryRepository).save(existingReadingEntry);
+    }
+
+    @Test
+    void updateReadingEntryNotes_shouldThrowReadingEntryNotFoundException_whenEntryDoesNotBelongToCurrentUser() {
+
+        User currentUser = createUser();
+
+        UUID readingEntryId = UUID.fromString("b3c862a1-ca6f-48bb-8d2f-1ca6d4357f9c");
+
+        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
+                "Great book, bad ending. Would recommend.",
+                "Have to check again p. 155-200 for continuity"
+        );
+
+        when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
+        when(readingEntryRepository.findByIdAndUser_Id(readingEntryId, currentUser.getId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> readingEntryService.updateReadingEntryNotes(readingEntryId, request))
+                .isInstanceOf(ReadingEntryNotFoundException.class)
+                .hasMessageContaining(readingEntryId.toString());
+
+        verify(readingEntryRepository, never()).save(any(ReadingEntry.class));
+
+    }
+
+    @Test
+    void updateReadingEntryNotes_shouldThrowInvalidReadingEntryException_whenReviewIsAddedToToReadEntry() {
+
+        User currentUser = createUser();
+
+        Book existingBook = createBook();
+
+        ReadingEntry existingReadingEntry = new ReadingEntry(
+                UUID.fromString("b82780fe-c934-40e1-887e-9a0afa0dce91"),
+                currentUser,
+                existingBook,
+                ReadingStatus.TO_READ,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                Instant.now()
+        );
+
+        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
+                "Great book, bad ending. Would recommend.",
+                "Have to read this before summer ends"
+        );
+
+        when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
+        when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
+
+        assertThatThrownBy(() -> readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request))
+                .isInstanceOf(InvalidReadingEntryException.class)
+                .hasMessageContaining("FINISHED or ABANDONED");
+
+        verify(readingEntryRepository, never()).save(any(ReadingEntry.class));
+    }
+
+    @Test
+    void updateReadingEntryNotes_shouldAllowNotesWithoutReview_whenEntryIsToRead() {
+
+        User currentUser = createUser();
+
+        Book existingBook = createBook();
+
+        ReadingEntry existingReadingEntry = new ReadingEntry(
+                UUID.fromString("b82780fe-c934-40e1-887e-9a0afa0dce91"),
+                currentUser,
+                existingBook,
+                ReadingStatus.TO_READ,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                Instant.now()
+        );
+
+        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
+                null,
+                "Have to read this before summer ends"
+        );
+
+        when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
+        when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
+        when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReadingEntry response = readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request);
+
+        assertThat(response.getReview()).isEqualTo(request.review());
+        assertThat(response.getNotes()).isEqualTo(request.notes());
+        assertThat(response.getUpdated()).isNotNull();
+
+        verify(readingEntryRepository).save(existingReadingEntry);
+    }
+
+    @Test
+    void updateReadingEntry_shouldClearReview_whenStatusChangesToToRead() {
+
+        User currentUser = createUser();
+
+        Book existingBook = createBook();
+
+        ReadingEntry existingReadingEntry = new ReadingEntry(
+                UUID.fromString("b82780fe-c934-40e1-887e-9a0afa0dce91"),
+                currentUser,
+                existingBook,
+                ReadingStatus.FINISHED,
+                6,
+                "Great book, bad ending. Would recommend.",
+                "Have to read this before summer ends",
+                LocalDate.parse("2025-01-15"),
+                LocalDate.parse("2025-02-01"),
+                Instant.now(),
+                Instant.now()
+        );
+
+        UpdateReadingEntryRequest request = new UpdateReadingEntryRequest(
+                ReadingStatus.TO_READ,
+                null,
+                null,
+                null
+        );
+
+        when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
+        when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
+        when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReadingEntry response = readingEntryService.updateReadingEntry(existingReadingEntry.getId(), request);
+
+        assertThat(response.getStatus()).isEqualTo(request.status());
+        assertThat(response.getRating()).isEqualTo(request.rating());
+        assertThat(response.getStartedAt()).isEqualTo(request.startedAt());
+        assertThat(response.getFinishedAt()).isEqualTo(request.finishedAt());
+        assertThat(response.getUpdated()).isNotNull();
+        assertThat(response.getReview()).isNull();
+        assertThat(response.getNotes()).isEqualTo("Have to read this before summer ends");
+
+        verify(readingEntryRepository).save(existingReadingEntry);
     }
 
     @Test

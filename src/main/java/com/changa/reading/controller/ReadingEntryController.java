@@ -1,9 +1,11 @@
 package com.changa.reading.controller;
 
 import com.changa.reading.domain.CreateReadingEntryRequest;
+import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
 import com.changa.reading.domain.dto.ReadingEntryDto;
+import com.changa.reading.domain.dto.UpdateReadingEntryNotesRequestDto;
 import com.changa.reading.domain.dto.UpdateReadingEntryRequestDto;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.mapper.ReadingEntryMapper;
@@ -86,6 +88,20 @@ public class ReadingEntryController {
         UpdateReadingEntryRequest updateReadingEntryRequest = readingEntryMapper.fromDto(updateReadingEntryRequestDto);
 
         ReadingEntry updatedReadingEntry = readingEntryService.updateReadingEntry(readingEntryId, updateReadingEntryRequest);
+
+        ReadingEntryDto updatedReadingEntryDto = readingEntryMapper.toDto(updatedReadingEntry);
+
+        return ResponseEntity.ok(updatedReadingEntryDto);
+    }
+
+    @PatchMapping(path = "/{readingEntryId}/notes")
+    public ResponseEntity<ReadingEntryDto> updateReadingEntryNotes(
+            @PathVariable("readingEntryId") UUID readingEntryId,
+            @Valid @RequestBody UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequestDto) {
+
+        UpdateReadingEntryNotesRequest updateReadingEntryNotesRequest = readingEntryMapper.fromDto(updateReadingEntryNotesRequestDto);
+
+        ReadingEntry updatedReadingEntry = readingEntryService.updateReadingEntryNotes(readingEntryId, updateReadingEntryNotesRequest);
 
         ReadingEntryDto updatedReadingEntryDto = readingEntryMapper.toDto(updatedReadingEntry);
 

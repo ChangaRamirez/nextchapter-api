@@ -5,6 +5,7 @@ import com.changa.book.domain.entity.Book;
 import com.changa.book.repository.BookRepository;
 import com.changa.exception.*;
 import com.changa.reading.domain.CreateReadingEntryRequest;
+import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
@@ -56,6 +57,8 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
                 existingBook,
                 request.status(),
                 request.rating(),
+                null,
+                null,
                 request.startedAt(),
                 request.finishedAt(),
                 now,
@@ -111,6 +114,28 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
         existingReadingEntry.setStartedAt(request.startedAt());
         existingReadingEntry.setFinishedAt(request.finishedAt());
 
+        if (!canHaveReview(request.status())) {
+            existingReadingEntry.setReview(null);
+        }
+
+        existingReadingEntry.setUpdated(Instant.now());
+
+        return readingEntryRepository.save(existingReadingEntry);
+    }
+
+    @Override
+    public ReadingEntry updateReadingEntryNotes(UUID readingEntryId, UpdateReadingEntryNotesRequest request) {
+
+        User user = authenticatedUserService.getCurrentUser();
+
+        ReadingEntry existingReadingEntry = readingEntryRepository.findByIdAndUser_Id(readingEntryId, user.getId()).orElseThrow(() ->
+                ReadingEntryNotFoundException.byId(readingEntryId));
+
+        validateReadingEntryNotesUpdate(existingReadingEntry, request);
+
+        existingReadingEntry.setReview(request.review());
+        existingReadingEntry.setNotes(request.notes());
+
         existingReadingEntry.setUpdated(Instant.now());
 
         return readingEntryRepository.save(existingReadingEntry);
@@ -138,6 +163,16 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
         if (status == ReadingStatus.FINISHED && finishedAt == null) {
             throw new InvalidReadingEntryException("A FINISHED entry must have a finished date.");
         }
+    }
+
+    private void validateReadingEntryNotesUpdate(ReadingEntry existingReadingEntry, UpdateReadingEntryNotesRequest request) {
+        if (request.review() != null && !canHaveReview(existingReadingEntry.getStatus())) {
+            throw  new InvalidReadingEntryException("Only FINISHED or ABANDONED entries can have a review.");
+        }
+    }
+
+    private boolean canHaveReview(ReadingStatus status) {
+        return (status == ReadingStatus.FINISHED || status == ReadingStatus.ABANDONED);
     }
 
 }
