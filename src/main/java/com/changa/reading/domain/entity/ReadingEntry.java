@@ -133,10 +133,6 @@ public class ReadingEntry {
         return created;
     }
 
-    public void setCreated(Instant created) {
-        this.created = created;
-    }
-
     public Instant getUpdated() {
         return updated;
     }
