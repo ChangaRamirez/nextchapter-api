@@ -94,7 +94,7 @@ public class ReadingEntryController {
         return ResponseEntity.ok(updatedReadingEntryDto);
     }
 
-    @PatchMapping(path = "/{readingEntryId}/notes")
+@PatchMapping(path = "/{readingEntryId}/notes")
     public ResponseEntity<ReadingEntryDto> updateReadingEntryNotes(
             @PathVariable("readingEntryId") UUID readingEntryId,
             @Valid @RequestBody UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequestDto) {

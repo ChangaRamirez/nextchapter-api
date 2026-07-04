@@ -1,15 +1,26 @@
 package com.changa.support;
 
+import com.changa.auth.dto.RegisterRequestDto;
+import com.changa.book.domain.dto.CreateBookRequestDto;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.user.domain.entity.User;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public final class TestDataFactory {
 
@@ -56,6 +67,41 @@ public final class TestDataFactory {
                 LocalDate.parse("2025-02-01"),
                 Instant.now(),
                 Instant.now()
+        );
+    }
+
+    public static RegisterRequestDto defaultRegisterRequest() {
+
+        return new RegisterRequestDto(
+                "Eduardo",
+                "eduardo@test.com",
+                "password123"
+        );
+    }
+
+    public static CreateBookRequestDto defaultCreateBookRequest() {
+
+        return new CreateBookRequestDto(
+                "Dune",
+                "A sci-fi classic",
+                "978-0441172719",
+                "Frank Herbert",
+                Set.of(
+                        BookGenre.SCIENCE_FICTION,
+                        BookGenre.ADVENTURE
+                ),
+                1965
+        );
+    }
+
+    public static CreateReadingEntryRequestDto defaultCreateReadingEntryRequest(UUID bookId) {
+
+        return new CreateReadingEntryRequestDto(
+                bookId,
+                ReadingStatus.TO_READ,
+                null,
+                null,
+                null
         );
     }
 }
