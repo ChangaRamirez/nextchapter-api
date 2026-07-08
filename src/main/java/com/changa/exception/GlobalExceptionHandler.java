@@ -21,116 +21,75 @@ public class GlobalExceptionHandler {
                         .findFirst()
                         .map(DefaultMessageSourceResolvable::getDefaultMessage)
                         .orElse("Validation failed");
-        ErrorResponseDto errorDto = new ErrorResponseDto(errorMessage);
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorDto);
+        return error(HttpStatus.BAD_REQUEST, errorMessage);
+
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidJson(
             HttpMessageNotReadableException ex) {
 
-        ErrorResponseDto errorDto =
-                new ErrorResponseDto("Invalid request body. Check that all fields have valid values.");
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorDto);
+        return error(HttpStatus.BAD_REQUEST, "Invalid request body. Check that all fields have valid values.");
     }
 
     @ExceptionHandler(BookNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleBookNotFoundException(BookNotFoundException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorResponseDto);
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateBookException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateBookException(DuplicateBookException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(errorResponseDto);
+        return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(
-                "Invalid value '%s' for parameter '%s'.".formatted(
-                        ex.getValue(),
-                        ex.getName())
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorResponseDto);
+        return error(HttpStatus.BAD_REQUEST, "Invalid value '%s' for parameter '%s'.".formatted(ex.getValue(), ex.getName()));
     }
 
     @ExceptionHandler(InvalidReadingEntryException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidReadingEntry(InvalidReadingEntryException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorResponseDto);
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateReadingEntryException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateReadingEntryException(DuplicateReadingEntryException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(errorResponseDto);
+        return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(ReadingEntryNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleReadingEntryNotFoundException(ReadingEntryNotFoundException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorResponseDto);
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicateEmailException(DuplicateEmailException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(errorResponseDto);
+        return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleUserNotFoundException(UserNotFoundException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorResponseDto);
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidCredentialsException(InvalidCredentialsException ex) {
 
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(ex.getMessage());
+        return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 
+    private ResponseEntity<ErrorResponseDto> error(HttpStatus status, String message) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(errorResponseDto);
+                .status(status)
+                .body(new ErrorResponseDto(message));
     }
 }

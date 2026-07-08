@@ -1,20 +1,33 @@
 package com.changa.auth.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.Length;
 
 public record RegisterRequestDto(
 
+        @Schema(
+                description = "User's display name.",
+                example = "Changa Ramirez"
+        )
         @NotBlank(message = ERROR_MESSAGE_NAME_MISSING)
         @Length(max = 255, message = ERROR_MESSAGE_NAME_LENGTH)
         String name,
 
+        @Schema(
+                description = "Unique email address used to log in.",
+                example = "changa@example.com"
+        )
         @NotBlank(message = ERROR_MESSAGE_EMAIL_MISSING)
         @Email(message = ERROR_MESSAGE_EMAIL_INVALID)
         @Length(max = 255, message = ERROR_MESSAGE_EMAIL_LENGTH)
         String email,
 
+        @Schema(
+                description = "User password.",
+                example = "MySecurePassword123!"
+        )
         @NotBlank(message = ERROR_MESSAGE_PASSWORD_MISSING)
         @Length(min = 8, max = 255, message = ERROR_MESSAGE_PASSWORD_LENGTH)
         String password
