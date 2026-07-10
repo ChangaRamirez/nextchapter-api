@@ -202,7 +202,7 @@ http://<server-address>:8080/swagger-ui/index.html
 ### Clone the repository
 
 ```bash
-git clone https://github.com/ChangaRamirez/book-tracker-app
+git clone https://github.com/ChangaRamirez/nextchapter-api
 cd bookshelf-api
 ```
 
