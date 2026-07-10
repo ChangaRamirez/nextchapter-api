@@ -203,7 +203,7 @@ http://<server-address>:8080/swagger-ui/index.html
 
 ```bash
 git clone https://github.com/ChangaRamirez/nextchapter-api
-cd bookshelf-api
+cd nextchapter-api
 ```
 
 ### Configure environment variables
