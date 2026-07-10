@@ -13,14 +13,14 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI goodreadsOpenAPI() {
+    public OpenAPI nextChapterOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Goodreads Backend API")
-                        .description("Personal Goodreads-like backend for managing books, reading entries. reviews, notes, and reading statistics")
-                        .version("v1")
+                        .title("NextChapter API")
+                        .description("Production-style REST API for managing personal reading collections, including books, reading progress, reviews, notes and personalized reading statistics.")
+                        .version("1.0.0")
                         .contact(new Contact()
-                                .name("Changa Ramirez")))
+                                .name("J. Eduardo \"Changa\" Ramírez-García")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()

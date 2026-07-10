@@ -30,8 +30,7 @@ import static com.changa.support.TestDataFactory.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -106,14 +105,16 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void createReadingEntry_shouldReturnForbidden_whenTokenIsMissing() throws Exception{
+    void createReadingEntry_shouldReturnUnauthorized_whenTokenIsMissing() throws Exception{
 
         CreateReadingEntryRequestDto readingEntryRequest = defaultCreateReadingEntryRequest(UUID.fromString("a3c862a1-ca6f-48bb-8d2f-1ca6d4357f9c"));
 
         mockMvc.perform(post("/api/v1/reading-entries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(readingEntryRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Authentication required"));
     }
 
     @Test

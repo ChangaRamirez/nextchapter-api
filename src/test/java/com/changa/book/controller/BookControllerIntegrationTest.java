@@ -61,14 +61,16 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void createBook_shouldReturnForbidden_whenTokenIsMissing() throws Exception {
+    void createBook_shouldReturnUnauthorized_whenTokenIsMissing() throws Exception {
 
         CreateBookRequestDto bookRequest = defaultCreateBookRequest();
 
         mockMvc.perform(post("/api/v1/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(bookRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("Authentication required"));
     }
 
     @Test
