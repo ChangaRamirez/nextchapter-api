@@ -15,13 +15,20 @@ public class Book {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false, length = 50)
+    private BookProvider provider = BookProvider.MANUAL;
+
+    @Column(name = "external_id", length = 255)
+    private String externalId;
+
     @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "isbn", updatable = false, nullable = false, unique = true, length = 17)
+    @Column(name = "isbn", updatable = false, unique = true, length = 17)
     private String isbn;
 
     @Column(name = "author", nullable = false)
@@ -36,6 +43,12 @@ public class Book {
     @Column(name = "publication_year", nullable = false)
     private Integer publicationYear;
 
+    @Column(name = "cover_url", length = 2048)
+    private String coverUrl;
+
+    @Column(name = "metadata_fetched_at")
+    private Instant metadataFetchedAt;
+
     @Column(name = "created", nullable = false, updatable = false)
     private Instant created;
 
@@ -47,6 +60,7 @@ public class Book {
 
     public Book(UUID id, String title, String description, String isbn, String author, Set<BookGenre> genres, Integer publicationYear, Instant created, Instant updated) {
         this.id = id;
+        this.provider = BookProvider.MANUAL;
         this.title = title;
         this.description = description;
         this.isbn = isbn;
@@ -63,6 +77,14 @@ public class Book {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public BookProvider getProvider() {
+        return provider;
+    }
+
+    public String getExternalId() {
+        return externalId;
     }
 
     public String getTitle() {
@@ -102,7 +124,9 @@ public class Book {
     }
 
     public void setGenres(Set<BookGenre> genres) {
-        this.genres = genres;
+        this.genres = genres == null
+                ? new HashSet<>()
+                : new HashSet<>(genres);
     }
 
     public Integer getPublicationYear() {
@@ -111,6 +135,22 @@ public class Book {
 
     public void setPublicationYear(Integer publicationYear) {
         this.publicationYear = publicationYear;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public Instant getMetadataFetchedAt() {
+        return metadataFetchedAt;
+    }
+
+    public void setMetadataFetchedAt(Instant metadataFetchedAt) {
+        this.metadataFetchedAt = metadataFetchedAt;
     }
 
     public Instant getCreated() {
@@ -131,26 +171,31 @@ public class Book {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof Book book)) return false;
 
-        Book book = (Book) o;
-        return isbn.equals(book.isbn);
+        return id != null && id.equals(book.id);
     }
 
     @Override
     public int hashCode() {
-        return isbn.hashCode();
+        return getClass().hashCode();
     }
 
     @Override
     public String toString() {
         return "Book{" +
                 "id=" + id +
+                ", provider=" + provider +
+                ", externalId='" + externalId + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", isbn='" + isbn + '\'' +
                 ", author='" + author + '\'' +
                 ", genres=" + genres +
+                ", publicationYear=" + publicationYear +
+                ", coverUrl='" + coverUrl + '\'' +
+                ", metadataFetchedAt=" + metadataFetchedAt +
                 ", created=" + created +
                 ", updated=" + updated +
                 '}';

@@ -2,7 +2,9 @@ package com.changa.book.controller;
 
 import com.changa.book.domain.dto.CreateBookRequestDto;
 import com.changa.book.domain.dto.UpdateBookRequestDto;
+import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import com.changa.book.repository.BookRepository;
 import com.changa.support.BaseIntegrationTest;
 import com.changa.user.repository.UserRepository;
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import tools.jackson.databind.JsonNode;
 
 import java.util.Set;
 import java.util.UUID;
@@ -19,8 +19,8 @@ import java.util.UUID;
 import static com.changa.support.TestDataFactory.*;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BookControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -49,6 +49,7 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
                         .content(jsonMapper.writeValueAsString(bookRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.provider").value("MANUAL"))
                 .andExpect(jsonPath("$.title").value("Dune"))
                 .andExpect(jsonPath("$.description").value("A sci-fi classic"))
                 .andExpect(jsonPath("$.isbn").value("978-0441172719"))
@@ -57,6 +58,14 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.genres", hasItem("SCIENCE_FICTION")))
                 .andExpect(jsonPath("$.genres", hasItem("ADVENTURE")))
                 .andExpect(jsonPath("$.publicationYear").value(1965));
+
+        Book savedBook = bookRepository.findByIsbn("978-0441172719")
+                .orElseThrow();
+
+        assertThat(savedBook.getProvider()).isEqualTo(BookProvider.MANUAL);
+        assertThat(savedBook.getExternalId()).isNull();
+        assertThat(savedBook.getCoverUrl()).isNull();
+        assertThat(savedBook.getMetadataFetchedAt()).isNull();
 
     }
 
@@ -148,6 +157,7 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
               .contentType(MediaType.APPLICATION_JSON))
               .andExpect(status().isOk())
               .andExpect(jsonPath("$.id").value(bookId.toString()))
+              .andExpect(jsonPath("$.provider").value("MANUAL"))
               .andExpect(jsonPath("$.title").value("Dune"))
               .andExpect(jsonPath("$.description").value("A sci-fi classic"))
               .andExpect(jsonPath("$.isbn").value("978-0441172719"))
@@ -206,6 +216,14 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.genres", hasItem("SCIENCE_FICTION")))
                 .andExpect(jsonPath("$.genres", hasItem("ADVENTURE")))
                 .andExpect(jsonPath("$.publicationYear").value(1969));
+
+        Book updatedBook = bookRepository.findById(bookId)
+                .orElseThrow();
+
+        assertThat(updatedBook.getProvider()).isEqualTo(BookProvider.MANUAL);
+        assertThat(updatedBook.getExternalId()).isNull();
+        assertThat(updatedBook.getCoverUrl()).isNull();
+        assertThat(updatedBook.getMetadataFetchedAt()).isNull();
     }
 
     @Test
@@ -492,6 +510,7 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
                         .queryParam("author", "frank")
                         .queryParam("genre" ,"ROMANCE")
                         .queryParam("publication-year", "1969")
+                        .queryParam("provider", "MANUAL")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -500,8 +519,26 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.content[*].author", hasItem("Frank Herbert")))
                 .andExpect(jsonPath("$.content[*].genres").isArray())
                 .andExpect(jsonPath("$.content[*].genres", everyItem(hasItem("ROMANCE"))))
-                .andExpect(jsonPath("$.content[*].publicationYear", hasItem(1969)));
+                .andExpect(jsonPath("$.content[*].publicationYear", hasItem(1969)))
+                .andExpect(jsonPath("$.content[*].provider", everyItem(is("MANUAL"))));
 
+    }
+
+    @Test
+    void searchBooks_shouldReturnManualBooks_whenProviderIsManual() throws Exception {
+
+        String token = registerAndGetToken(defaultRegisterRequest());
+
+        createBookAndReturnId(token, defaultCreateBookRequest());
+
+        mockMvc.perform(get("/api/v1/books/search")
+                        .queryParam("provider", "MANUAL")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].provider").value("MANUAL"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -581,4 +618,15 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
 
     }
 
+    @Test
+    void searchBooks_shouldReturnBadRequest_whenProviderIsInvalid() throws Exception {
+
+        String token = registerAndGetToken(defaultRegisterRequest());
+
+        mockMvc.perform(get("/api/v1/books/search")
+                        .queryParam("provider", "UNKNOWN_PROVIDER")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
 }

@@ -4,6 +4,7 @@ import com.changa.book.domain.CreateBookRequest;
 import com.changa.book.domain.UpdateBookRequest;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,15 +20,7 @@ public interface BookService {
 
     Book getBookByIsbn(String bookIsbn);
 
-    Page<Book> searchBooksByTitle(String bookTitle, Pageable pageable);
-
-    Page<Book> searchBookByAuthor(String author, Pageable pageable);
-
-    Page<Book> searchBooksByGenre(BookGenre genre, Pageable pageable);
-
-    Page<Book> searchBooksByYearRange(Integer from, Integer to, Pageable pageable);
-
-    Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, Pageable pageable);
+    Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, BookProvider provider, Pageable pageable);
 
     List<String> listAuthors();
 

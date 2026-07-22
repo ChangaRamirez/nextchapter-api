@@ -4,17 +4,13 @@ import com.changa.book.domain.CreateBookRequest;
 import com.changa.book.domain.UpdateBookRequest;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import com.changa.book.repository.BookRepository;
 import com.changa.exception.BookNotFoundException;
 import com.changa.exception.DuplicateBookException;
-import com.changa.reading.domain.entity.ReadingEntry;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -92,16 +87,31 @@ class BookServiceImplTest {
 
         Book createdBook = bookService.createBook(request);
 
-        assertThat(createdBook.getTitle()).isEqualTo(request.title());
-        assertThat(createdBook.getDescription()).isEqualTo(request.description());
-        assertThat(createdBook.getIsbn()).isEqualTo(request.isbn());
-        assertThat(createdBook.getAuthor()).isEqualTo(request.author());
-        assertThat(createdBook.getGenres()).isEqualTo(request.genres());
-        assertThat(createdBook.getPublicationYear()).isEqualTo(request.publicationYear());
-        assertThat(createdBook.getCreated()).isNotNull();
-        assertThat(createdBook.getUpdated()).isNotNull();
+        ArgumentCaptor<Book> bookCaptor =
+                ArgumentCaptor.forClass(Book.class);
 
-        verify(bookRepository).save(any(Book.class));
+        verify(bookRepository).save(bookCaptor.capture());
+
+        Book savedBook = bookCaptor.getValue();
+
+        assertThat(savedBook.getTitle()).isEqualTo(request.title());
+        assertThat(savedBook.getDescription()).isEqualTo(request.description());
+        assertThat(savedBook.getIsbn()).isEqualTo(request.isbn());
+        assertThat(savedBook.getAuthor()).isEqualTo(request.author());
+        assertThat(savedBook.getGenres()).isEqualTo(request.genres());
+        assertThat(savedBook.getPublicationYear()).isEqualTo(request.publicationYear());
+
+        assertThat(savedBook.getCreated()).isNotNull();
+        assertThat(savedBook.getUpdated()).isNotNull();
+        assertThat(savedBook.getCreated()).isEqualTo(savedBook.getUpdated());
+
+        assertThat(savedBook.getProvider()).isEqualTo(BookProvider.MANUAL);
+        assertThat(savedBook.getExternalId()).isNull();
+        assertThat(savedBook.getCoverUrl()).isNull();
+        assertThat(savedBook.getMetadataFetchedAt()).isNull();
+
+        assertThat(createdBook).isSameAs(savedBook);
+
         verify(bookRepository).existsByIsbn(request.isbn());
 
     }
@@ -159,6 +169,10 @@ class BookServiceImplTest {
         assertThat(updatedBook.getGenres()).isEqualTo(request.genres());
         assertThat(updatedBook.getPublicationYear()).isEqualTo(request.publicationYear());
         assertThat(updatedBook.getUpdated()).isNotNull();
+        assertThat(updatedBook.getProvider()).isEqualTo(BookProvider.MANUAL);
+        assertThat(updatedBook.getExternalId()).isNull();
+        assertThat(updatedBook.getCoverUrl()).isNull();
+        assertThat(updatedBook.getMetadataFetchedAt()).isNull();
 
         verify(bookRepository).save(existingBook);
     }
@@ -223,7 +237,7 @@ class BookServiceImplTest {
 
         when(bookRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
-        Page<Book> page = bookService.searchBooks("Dune", "Herbert", BookGenre.SCIENCE_FICTION, 1986, pageable);
+        Page<Book> page = bookService.searchBooks("Dune", "Herbert", BookGenre.SCIENCE_FICTION, 1986, BookProvider.MANUAL, pageable);
 
         assertThat(page).isEqualTo(expectedPage);
 

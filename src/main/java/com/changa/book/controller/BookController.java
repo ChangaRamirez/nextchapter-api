@@ -7,6 +7,7 @@ import com.changa.book.domain.dto.CreateBookRequestDto;
 import com.changa.book.domain.dto.UpdateBookRequestDto;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import com.changa.book.mapper.BookMapper;
 import com.changa.book.service.BookService;
 import com.changa.exception.ErrorResponseDto;
@@ -282,10 +283,13 @@ public class BookController {
             @Parameter(description = "Optional publication year filter", example = "1937")
             @RequestParam(required = false) Integer publicationYear,
 
+            @Parameter(description = "Optional book provider filter", example = "OPEN_LIBRARY")
+            @RequestParam(required = false) BookProvider provider,
+
             @Parameter(hidden = true)
             @PageableDefault(value = 10, sort = "title") Pageable pageable) {
 
-        Page<Book> books = bookService.searchBooks(title, author, genre, publicationYear, pageable);
+        Page<Book> books = bookService.searchBooks(title, author, genre, publicationYear, provider, pageable);
 
         return ResponseEntity.ok(books.map(bookMapper::toDto));
     }

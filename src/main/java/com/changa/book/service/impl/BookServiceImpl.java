@@ -4,6 +4,7 @@ import com.changa.book.domain.CreateBookRequest;
 import com.changa.book.domain.UpdateBookRequest;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import com.changa.book.specification.BookSpecification;
 import com.changa.exception.BookNotFoundException;
 import com.changa.exception.DuplicateBookException;
@@ -69,28 +70,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Page<Book> searchBooksByTitle(String bookTitle, Pageable pageable) {
-        return bookRepository.findByTitleContainingIgnoreCase(bookTitle, pageable);
-    }
-
-
-    @Override
-    public Page<Book> searchBookByAuthor(String author, Pageable pageable) {
-        return bookRepository.findByAuthorContainingIgnoreCase(author, pageable);
-    }
-
-    @Override
-    public Page<Book> searchBooksByGenre(BookGenre genre, Pageable pageable) {
-        return bookRepository.findByGenresContaining(genre, pageable);
-    }
-
-    @Override
-    public Page<Book> searchBooksByYearRange(Integer from, Integer to, Pageable pageable) {
-        return bookRepository.findByPublicationYearBetween(from, to, pageable);
-    }
-
-    @Override
-    public Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, Pageable pageable) {
+    public Page<Book> searchBooks(String title, String author, BookGenre genre, Integer publicationYear, BookProvider provider, Pageable pageable) {
         Specification<Book> spec = (root, query, cb) -> cb.conjunction();
 
         if (title != null && !title.isBlank()) {
@@ -105,8 +85,12 @@ public class BookServiceImpl implements BookService {
             spec = spec.and(BookSpecification.hasGenre(genre));
         }
 
-        if(publicationYear != null) {
+        if (publicationYear != null) {
             spec = spec.and(BookSpecification.hasPublicationYear(publicationYear));
+        }
+
+        if (provider != null) {
+            spec = spec.and(BookSpecification.hasProvider(provider));
         }
 
         return bookRepository.findAll(spec, pageable);

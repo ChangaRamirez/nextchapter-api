@@ -2,6 +2,7 @@ package com.changa.book.specification;
 
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
+import com.changa.book.domain.entity.BookProvider;
 import org.springframework.data.jpa.domain.Specification;
 
 public class BookSpecification {
@@ -35,5 +36,10 @@ public class BookSpecification {
                         root.get("publicationYear"),
                         publicationYear
                 );
+    }
+
+    public static Specification<Book> hasProvider(BookProvider provider) {
+        return (root, query, cb) ->
+                cb.equal(root.get("provider"), provider);
     }
 }
