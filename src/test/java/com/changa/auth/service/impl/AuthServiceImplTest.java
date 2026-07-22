@@ -7,9 +7,11 @@ import com.changa.auth.service.JwtService;
 import com.changa.exception.DuplicateEmailException;
 import com.changa.exception.InvalidCredentialsException;
 import com.changa.user.domain.entity.User;
+import com.changa.user.domain.entity.UserRole;
 import com.changa.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,7 +53,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void register_shouldSaveUserWithEncodedPassword_whenEmailIsAvailable() {
+    void register_shouldSaveUserWithEncodedPasswordAndUserRole_whenEmailIsAvailable() {
         RegisterRequestDto request = createRegisterRequestDto();
 
         when(userRepository.existsByEmail("eduardo@test.com"))
@@ -68,12 +70,22 @@ class AuthServiceImplTest {
 
         AuthResponseDto response = authService.register(request);
 
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+
+        verify(userRepository).save(userCaptor.capture());
+
+        User savedUser = userCaptor.getValue();
+
         assertThat(response.name()).isEqualTo("Eduardo");
         assertThat(response.email()).isEqualTo("eduardo@test.com");
 
+        assertThat(savedUser.getEmail()).isEqualTo("eduardo@test.com");
+        assertThat(savedUser.getName()).isEqualTo("Eduardo");
+        assertThat(savedUser.getPassword()).isEqualTo("encoded-password");
+        assertThat(savedUser.getRole()).isEqualTo(UserRole.USER);
+
         verify(passwordEncoder).encode("password123");
-        verify(userRepository).save(any(User.class));
-        verify(jwtService).generateToken(any(User.class));
+        verify(jwtService).generateToken(savedUser);
     }
 
     @Test

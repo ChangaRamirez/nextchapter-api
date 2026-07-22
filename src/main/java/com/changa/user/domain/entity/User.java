@@ -22,6 +22,10 @@ public class User {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.USER;
+
     @Column(name = "created", nullable = false, updatable = false)
     private Instant created;
 
@@ -65,6 +69,14 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public Instant getCreated() {
