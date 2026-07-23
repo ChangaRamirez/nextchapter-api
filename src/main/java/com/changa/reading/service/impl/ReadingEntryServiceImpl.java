@@ -5,7 +5,7 @@ import com.changa.book.domain.entity.Book;
 import com.changa.book.repository.BookRepository;
 import com.changa.exception.*;
 import com.changa.reading.domain.CreateReadingEntryRequest;
-import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
+import com.changa.reading.domain.UpdateReadingEntryReviewRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingStatus;
@@ -14,8 +14,6 @@ import com.changa.reading.service.ReadingEntryService;
 import com.changa.user.domain.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -57,7 +55,6 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
                 existingBook,
                 request.status(),
                 request.rating(),
-                null,
                 null,
                 request.startedAt(),
                 request.finishedAt(),
@@ -124,18 +121,16 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
     }
 
     @Override
-    public ReadingEntry updateReadingEntryNotes(UUID readingEntryId, UpdateReadingEntryNotesRequest request) {
+    public ReadingEntry updateReadingEntryReview(UUID readingEntryId, UpdateReadingEntryReviewRequest request) {
 
         User user = authenticatedUserService.getCurrentUser();
 
         ReadingEntry existingReadingEntry = readingEntryRepository.findByIdAndUser_Id(readingEntryId, user.getId()).orElseThrow(() ->
                 ReadingEntryNotFoundException.byId(readingEntryId));
 
-        validateReadingEntryNotesUpdate(existingReadingEntry, request);
+        validateReadingEntryReviewUpdate(existingReadingEntry, request);
 
         existingReadingEntry.setReview(request.review());
-        existingReadingEntry.setNotes(request.notes());
-
         existingReadingEntry.setUpdated(Instant.now());
 
         return readingEntryRepository.save(existingReadingEntry);
@@ -165,9 +160,14 @@ public class ReadingEntryServiceImpl implements ReadingEntryService {
         }
     }
 
-    private void validateReadingEntryNotesUpdate(ReadingEntry existingReadingEntry, UpdateReadingEntryNotesRequest request) {
+    private void validateReadingEntryReviewUpdate(ReadingEntry existingReadingEntry, UpdateReadingEntryReviewRequest request) {
         if (request.review() != null && !canHaveReview(existingReadingEntry.getStatus())) {
             throw  new InvalidReadingEntryException("Only FINISHED or ABANDONED entries can have a review.");
+        }
+        if (request.review() != null && request.review().isBlank()) {
+            throw new InvalidReadingEntryException(
+                    "Review must not be blank."
+            );
         }
     }
 

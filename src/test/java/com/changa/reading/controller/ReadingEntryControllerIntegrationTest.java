@@ -5,7 +5,7 @@ import com.changa.book.domain.dto.CreateBookRequestDto;
 import com.changa.book.domain.entity.BookGenre;
 import com.changa.book.repository.BookRepository;
 import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
-import com.changa.reading.domain.dto.UpdateReadingEntryNotesRequestDto;
+import com.changa.reading.domain.dto.UpdateReadingEntryReviewRequestDto;
 import com.changa.reading.domain.dto.UpdateReadingEntryRequestDto;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.reading.repository.ReadingEntryRepository;
@@ -29,7 +29,6 @@ import java.util.UUID;
 import static com.changa.support.TestDataFactory.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
@@ -76,7 +75,9 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.status").value("TO_READ"))
                 .andExpect(jsonPath("$.rating").doesNotExist())
                 .andExpect(jsonPath("$.startedAt").doesNotExist())
-                .andExpect(jsonPath("$.finishedAt").doesNotExist());
+                .andExpect(jsonPath("$.finishedAt").doesNotExist())
+                .andExpect(jsonPath("$.review").doesNotExist())
+                .andExpect(jsonPath("$.notes").isEmpty());
     }
 
     @Test
@@ -453,11 +454,14 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.status").value("FINISHED"))
                 .andExpect(jsonPath("$.rating").value(8))
                 .andExpect(jsonPath("$.startedAt").value("2026-06-02"))
-                .andExpect(jsonPath("$.finishedAt").value("2026-07-01"));
+                .andExpect(jsonPath("$.finishedAt").value("2026-07-01"))
+                .andExpect(jsonPath("$.review").doesNotExist())
+                .andExpect(jsonPath("$.notes").isEmpty());
+
     }
 
     @Test
-    void updateReadingEntryNotes_shouldReturnNotFound_whenEntryBelongsToAnotherUser() throws Exception {
+    void updateReadingEntryReview_shouldReturnNotFound_whenEntryBelongsToAnotherUser() throws Exception {
 
         //Registering the first user
         String tokenEduardo = registerAndGetToken(defaultRegisterRequest());
@@ -478,21 +482,52 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
         UUID readingEntryId = createReadingEntryAndReturnId(tokenEduardo, readingEntryRequestEduardo);
 
         //Alice tries to update Eduardo's Reading Entry
-        UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequest = new UpdateReadingEntryNotesRequestDto(
-                null,
-                "Must read this book before the summer ends"
+        UpdateReadingEntryReviewRequestDto updateReadingEntryReviewRequest = new UpdateReadingEntryReviewRequestDto(
+                "Great book, would recommend"
         );
 
-        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/notes", readingEntryId)
+        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/review", readingEntryId)
                         .header("Authorization", "Bearer " + tokenAlice)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(updateReadingEntryNotesRequest)))
+                        .content(jsonMapper.writeValueAsString(updateReadingEntryReviewRequest)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value(containsString(readingEntryId.toString())));
     }
 
     @Test
-    void updateReadingEntryNotes_shouldReturnUpdatedEntry_whenEntryBelongsToCurrentUser() throws Exception {
+    void updateReadingEntryReview_shouldReturnUpdatedEntry_whenEntryBelongsToCurrentUser() throws Exception {
+
+        String tokenEduardo = registerAndGetToken(defaultRegisterRequest());
+
+        CreateBookRequestDto bookRequest = defaultCreateBookRequest();
+
+        UUID bookId = createBookAndReturnId(tokenEduardo, bookRequest);
+
+        CreateReadingEntryRequestDto readingEntryRequestEduardo = new CreateReadingEntryRequestDto(
+                bookId,
+                ReadingStatus.FINISHED,
+                8,
+                LocalDate.now().minusDays(1),
+                LocalDate.now()
+        );
+
+        UUID readingEntryId = createReadingEntryAndReturnId(tokenEduardo, readingEntryRequestEduardo);
+
+        UpdateReadingEntryReviewRequestDto updateReadingEntryReviewRequest = new UpdateReadingEntryReviewRequestDto(
+                "Great book, would recommend"
+        );
+
+        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/review", readingEntryId)
+                        .header("Authorization", "Bearer " + tokenEduardo)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(updateReadingEntryReviewRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.review").value("Great book, would recommend"))
+                .andExpect(jsonPath("$.notes").isEmpty());
+    }
+
+    @Test
+    void updateReadingEntryReview_shouldReturnBadRequest_whenReviewIsSubmittedButReadingStatusIsNotFit() throws Exception {
 
         String tokenEduardo = registerAndGetToken(defaultRegisterRequest());
 
@@ -504,47 +539,20 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
 
         UUID readingEntryId = createReadingEntryAndReturnId(tokenEduardo, readingEntryRequestEduardo);
 
-        UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequest = new UpdateReadingEntryNotesRequestDto(
-                null,
-                "Must read this book before the summer ends"
+        UpdateReadingEntryReviewRequestDto updateReadingEntryReviewRequest = new UpdateReadingEntryReviewRequestDto(
+                "Great book, would recommend"
         );
 
-        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/notes", readingEntryId)
+        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/review", readingEntryId)
                         .header("Authorization", "Bearer " + tokenEduardo)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(updateReadingEntryNotesRequest)))
-                .andExpect(status().isOk()).andDo(print())
-                .andExpect(jsonPath("$.review").isEmpty())
-                .andExpect(jsonPath("$.notes").value("Must read this book before the summer ends"));
+                        .content(jsonMapper.writeValueAsString(updateReadingEntryReviewRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(containsString("FINISHED or ABANDONED")));
     }
 
     @Test
-    void updateReadingEntryNotes_shouldReturnBadRequest_whenReviewIsSubmittedButReadingStatusIsNotFit() throws Exception {
-
-        String tokenEduardo = registerAndGetToken(defaultRegisterRequest());
-
-        CreateBookRequestDto bookRequest = defaultCreateBookRequest();
-
-        UUID bookId = createBookAndReturnId(tokenEduardo, bookRequest);
-
-        CreateReadingEntryRequestDto readingEntryRequestEduardo = defaultCreateReadingEntryRequest(bookId);
-
-        UUID readingEntryId = createReadingEntryAndReturnId(tokenEduardo, readingEntryRequestEduardo);
-
-        UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequest = new UpdateReadingEntryNotesRequestDto(
-                "Great book, would recommend",
-                "Must read this book before the summer ends"
-        );
-
-        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/notes", readingEntryId)
-                        .header("Authorization", "Bearer " + tokenEduardo)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(updateReadingEntryNotesRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void updateReadingEntryNotes_shouldReturnUpdatedReadingEntry_whenReviewIsSubmittedAndReadingStatusIsFit() throws Exception {
+    void updateReadingEntryReview_shouldReturnUpdatedReadingEntry_whenReviewIsSubmittedAndReadingStatusIsFit() throws Exception {
 
         String tokenEduardo = registerAndGetToken(defaultRegisterRequest());
 
@@ -562,18 +570,17 @@ class ReadingEntryControllerIntegrationTest extends BaseIntegrationTest {
 
         UUID readingEntryId = createReadingEntryAndReturnId(tokenEduardo, readingEntryRequestEduardo);
 
-        UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequest = new UpdateReadingEntryNotesRequestDto(
-                "Great book, would recommend",
-                "Must read this book before the summer ends"
+        UpdateReadingEntryReviewRequestDto updateReadingEntryReviewRequest = new UpdateReadingEntryReviewRequestDto(
+                "Great book, would recommend"
         );
 
-        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/notes", readingEntryId)
+        mockMvc.perform(patch("/api/v1/reading-entries/{readingEntryId}/review", readingEntryId)
                         .header("Authorization", "Bearer " + tokenEduardo)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(updateReadingEntryNotesRequest)))
+                        .content(jsonMapper.writeValueAsString(updateReadingEntryReviewRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.review").value("Great book, would recommend"))
-                .andExpect(jsonPath("$.notes").value("Must read this book before the summer ends"));
+                .andExpect(jsonPath("$.notes").isEmpty());
     }
 
     @Test

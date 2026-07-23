@@ -1,13 +1,11 @@
 package com.changa.reading.mapper;
 
 import com.changa.reading.domain.CreateReadingEntryRequest;
-import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
+import com.changa.reading.domain.UpdateReadingEntryReviewRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
-import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
-import com.changa.reading.domain.dto.ReadingEntryDto;
-import com.changa.reading.domain.dto.UpdateReadingEntryNotesRequestDto;
-import com.changa.reading.domain.dto.UpdateReadingEntryRequestDto;
+import com.changa.reading.domain.dto.*;
 import com.changa.reading.domain.entity.ReadingEntry;
+import com.changa.reading.domain.entity.ReadingNote;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -21,7 +19,9 @@ public interface ReadingEntryMapper {
     @Mapping(target = "bookTitle", source = "book.title")
     ReadingEntryDto toDto(ReadingEntry readingEntry);
 
+    ReadingNoteDto toDto(ReadingNote readingNote);
+
     UpdateReadingEntryRequest fromDto(UpdateReadingEntryRequestDto dto);
 
-    UpdateReadingEntryNotesRequest fromDto(UpdateReadingEntryNotesRequestDto dto);
+    UpdateReadingEntryReviewRequest fromDto(UpdateReadingEntryReviewRequestDto dto);
 }

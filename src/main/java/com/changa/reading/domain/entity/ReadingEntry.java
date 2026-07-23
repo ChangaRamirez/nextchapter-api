@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,12 +34,12 @@ public class ReadingEntry {
     @Column(name = "rating")
     private Integer rating;
 
-    // Consider adding a new entity UserNote for a List of notes with more features later
     @Column(name = "review", length = 2000)
     private String review;
 
-    @Column(name = "notes", length = 5000)
-    private String notes;
+    @OneToMany(mappedBy = "readingEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("created ASC")
+    private List<ReadingNote> notes = new ArrayList<>();
 
     @Column(name = "started_at")
     private LocalDate startedAt;
@@ -55,14 +56,13 @@ public class ReadingEntry {
     public ReadingEntry() {
     }
 
-    public ReadingEntry(UUID id, User user, Book book, ReadingStatus status, Integer rating, String review, String notes, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
+    public ReadingEntry(UUID id, User user, Book book, ReadingStatus status, Integer rating, String review, LocalDate startedAt, LocalDate finishedAt, Instant created, Instant updated) {
         this.id = id;
         this.user = user;
         this.book = book;
         this.status = status;
         this.rating = rating;
         this.review = review;
-        this.notes = notes;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
         this.created = created;
@@ -105,12 +105,18 @@ public class ReadingEntry {
         this.review = review;
     }
 
-    public String getNotes() {
+    public List<ReadingNote> getNotes() {
         return notes;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void addNote(ReadingNote note) {
+        notes.add(note);
+        note.setReadingEntry(this);
+    }
+
+    public void removeNote(ReadingNote note) {
+        notes.remove(note);
+        note.setReadingEntry(null);
     }
 
     public LocalDate getStartedAt() {
@@ -143,14 +149,13 @@ public class ReadingEntry {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ReadingEntry that = (ReadingEntry) o;
+        if (this == o) return true;
+        if (!(o instanceof ReadingEntry that)) return false;
         return id != null && id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return getClass().hashCode();
     }
 }

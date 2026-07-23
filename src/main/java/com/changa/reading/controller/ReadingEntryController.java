@@ -2,12 +2,9 @@ package com.changa.reading.controller;
 
 import com.changa.exception.ErrorResponseDto;
 import com.changa.reading.domain.CreateReadingEntryRequest;
-import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
+import com.changa.reading.domain.UpdateReadingEntryReviewRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
-import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
-import com.changa.reading.domain.dto.ReadingEntryDto;
-import com.changa.reading.domain.dto.UpdateReadingEntryNotesRequestDto;
-import com.changa.reading.domain.dto.UpdateReadingEntryRequestDto;
+import com.changa.reading.domain.dto.*;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.mapper.ReadingEntryMapper;
 import com.changa.reading.service.ReadingEntryService;
@@ -364,19 +361,19 @@ public class ReadingEntryController {
                     )
             )
     })
-    @PatchMapping(path = "/{readingEntryId}/notes")
-    public ResponseEntity<ReadingEntryDto> updateReadingEntryNotes(
+    @PatchMapping(path = "/{readingEntryId}/review")
+    public ResponseEntity<ReadingEntryDto> updateReadingEntryReview(
             @Parameter(
                     description = "Reading entry unique identifier.",
                     example = "3d9616f5-b0af-4d0a-beab-dee7d7e2960e"
             )
             @PathVariable("readingEntryId") UUID readingEntryId,
 
-            @Valid @RequestBody UpdateReadingEntryNotesRequestDto updateReadingEntryNotesRequestDto) {
+            @Valid @RequestBody UpdateReadingEntryReviewRequestDto updateReadingEntryReviewRequestDto) {
 
-        UpdateReadingEntryNotesRequest updateReadingEntryNotesRequest = readingEntryMapper.fromDto(updateReadingEntryNotesRequestDto);
+        UpdateReadingEntryReviewRequest updateReadingEntryReviewRequest = readingEntryMapper.fromDto(updateReadingEntryReviewRequestDto);
 
-        ReadingEntry updatedReadingEntry = readingEntryService.updateReadingEntryNotes(readingEntryId, updateReadingEntryNotesRequest);
+        ReadingEntry updatedReadingEntry = readingEntryService.updateReadingEntryReview(readingEntryId, updateReadingEntryReviewRequest);
 
         ReadingEntryDto updatedReadingEntryDto = readingEntryMapper.toDto(updatedReadingEntry);
 

@@ -2,22 +2,21 @@ package com.changa.reading.service.impl;
 
 import com.changa.auth.service.AuthenticatedUserService;
 import com.changa.book.domain.entity.Book;
-import com.changa.book.domain.entity.BookGenre;
 import com.changa.book.repository.BookRepository;
 import com.changa.exception.BookNotFoundException;
 import com.changa.exception.DuplicateReadingEntryException;
 import com.changa.exception.InvalidReadingEntryException;
 import com.changa.exception.ReadingEntryNotFoundException;
 import com.changa.reading.domain.CreateReadingEntryRequest;
-import com.changa.reading.domain.UpdateReadingEntryNotesRequest;
+import com.changa.reading.domain.UpdateReadingEntryReviewRequest;
 import com.changa.reading.domain.UpdateReadingEntryRequest;
 import com.changa.reading.domain.entity.ReadingEntry;
+import com.changa.reading.domain.entity.ReadingNote;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.reading.repository.ReadingEntryRepository;
 import com.changa.user.domain.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -207,21 +206,9 @@ class ReadingEntryServiceImplTest {
         assertThat(response.getFinishedAt()).isEqualTo(request.finishedAt());
         assertThat(response.getCreated()).isNotNull();
         assertThat(response.getUpdated()).isNotNull();
+        assertThat(response.getReview()).isNull();
+        assertThat(response.getNotes()).isEmpty();
 
-//        // Learning to use ArgumentCaptor.
-//        ArgumentCaptor<ReadingEntry> captor = ArgumentCaptor.forClass(ReadingEntry.class);
-//        verify(readingEntryRepository).save(captor.capture());
-//
-//        ReadingEntry savedEntry = captor.getValue();
-//
-//        assertThat(savedEntry.getUser()).isEqualTo(currentUser);
-//        assertThat(savedEntry.getBook()).isEqualTo(existingBook);
-//        assertThat(savedEntry.getStatus()).isEqualTo(request.status());
-//        assertThat(savedEntry.getRating()).isEqualTo(request.rating());
-//        assertThat(savedEntry.getStartedAt()).isEqualTo(request.startedAt());
-//        assertThat(savedEntry.getFinishedAt()).isEqualTo(request.finishedAt());
-//        assertThat(savedEntry.getCreated()).isNotNull();
-//        assertThat(savedEntry.getUpdated()).isNotNull();
     }
 
     @Test
@@ -254,7 +241,6 @@ class ReadingEntryServiceImplTest {
                 currentUser,
                 existingBook,
                 ReadingStatus.TO_READ,
-                null,
                 null,
                 null,
                 null,
@@ -308,13 +294,17 @@ class ReadingEntryServiceImplTest {
         when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
         when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        Instant previousUpdated = existingReadingEntry.getUpdated();
+
         ReadingEntry response = readingEntryService.updateReadingEntry(existingReadingEntry.getId(), request);
 
         assertThat(response.getStatus()).isEqualTo(request.status());
         assertThat(response.getRating()).isEqualTo(request.rating());
         assertThat(response.getStartedAt()).isEqualTo(request.startedAt());
         assertThat(response.getFinishedAt()).isEqualTo(request.finishedAt());
-        assertThat(response.getUpdated()).isNotNull();
+        assertThat(response.getUpdated()).isAfterOrEqualTo(previousUpdated);
+        assertThat(response.getReview()).isNull();
+        assertThat(response.getNotes()).isEmpty();
 
         verify(readingEntryRepository).save(existingReadingEntry);
     }
@@ -345,7 +335,7 @@ class ReadingEntryServiceImplTest {
     }
 
     @Test
-    void updateReadingEntryNotes_shouldUpdateEntryNotes_whenEntryBelongsToCurrentUser() {
+    void updateReadingEntryReview_shouldUpdateEntryReview_whenEntryBelongsToCurrentUser() {
 
         User currentUser = createUser();
 
@@ -353,40 +343,41 @@ class ReadingEntryServiceImplTest {
 
         ReadingEntry existingReadingEntry = createReadingEntry(currentUser, existingBook);
 
-        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
-                "Great book, bad ending. Would recommend.",
-                "Have to check again p. 155-200 for continuity"
+        UpdateReadingEntryReviewRequest request = new UpdateReadingEntryReviewRequest(
+                "Great book, bad ending. Would recommend."
         );
 
         when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
         when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
         when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ReadingEntry response = readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request);
+        Instant previousUpdated = existingReadingEntry.getUpdated();
+
+        ReadingEntry response = readingEntryService.updateReadingEntryReview(existingReadingEntry.getId(), request);
 
         assertThat(response.getReview()).isEqualTo(request.review());
-        assertThat(response.getNotes()).isEqualTo(request.notes());
-        assertThat(response.getUpdated()).isNotNull();
+        assertThat(response.getUpdated()).isAfterOrEqualTo(previousUpdated);
+        assertThat(response.getStatus()).isEqualTo(existingReadingEntry.getStatus());
+        assertThat(response.getNotes()).isEmpty();
 
         verify(readingEntryRepository).save(existingReadingEntry);
     }
 
     @Test
-    void updateReadingEntryNotes_shouldThrowReadingEntryNotFoundException_whenEntryDoesNotBelongToCurrentUser() {
+    void updateReadingEntryReview_shouldThrowReadingEntryNotFoundException_whenEntryDoesNotBelongToCurrentUser() {
 
         User currentUser = createUser();
 
         UUID readingEntryId = UUID.fromString("b3c862a1-ca6f-48bb-8d2f-1ca6d4357f9c");
 
-        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
-                "Great book, bad ending. Would recommend.",
-                "Have to check again p. 155-200 for continuity"
+        UpdateReadingEntryReviewRequest request = new UpdateReadingEntryReviewRequest(
+                "Great book, bad ending. Would recommend."
         );
 
         when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
         when(readingEntryRepository.findByIdAndUser_Id(readingEntryId, currentUser.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> readingEntryService.updateReadingEntryNotes(readingEntryId, request))
+        assertThatThrownBy(() -> readingEntryService.updateReadingEntryReview(readingEntryId, request))
                 .isInstanceOf(ReadingEntryNotFoundException.class)
                 .hasMessageContaining(readingEntryId.toString());
 
@@ -395,7 +386,7 @@ class ReadingEntryServiceImplTest {
     }
 
     @Test
-    void updateReadingEntryNotes_shouldThrowInvalidReadingEntryException_whenReviewIsAddedToToReadEntry() {
+    void updateReadingEntryReview_shouldThrowInvalidReadingEntryException_whenReviewIsAddedToToReadEntry() {
 
         User currentUser = createUser();
 
@@ -410,20 +401,18 @@ class ReadingEntryServiceImplTest {
                 null,
                 null,
                 null,
-                null,
                 Instant.now(),
                 Instant.now()
         );
 
-        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
-                "Great book, bad ending. Would recommend.",
-                "Have to read this before summer ends"
+        UpdateReadingEntryReviewRequest request = new UpdateReadingEntryReviewRequest(
+                "Great book, bad ending. Would recommend."
         );
 
         when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
         when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
 
-        assertThatThrownBy(() -> readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request))
+        assertThatThrownBy(() -> readingEntryService.updateReadingEntryReview(existingReadingEntry.getId(), request))
                 .isInstanceOf(InvalidReadingEntryException.class)
                 .hasMessageContaining("FINISHED or ABANDONED");
 
@@ -431,43 +420,29 @@ class ReadingEntryServiceImplTest {
     }
 
     @Test
-    void updateReadingEntryNotes_shouldAllowNotesWithoutReview_whenEntryIsToRead() {
+    void updateReadingEntryReview_shouldThrowInvalidReadingEntryException_whenReviewRequestMessageIsEmpty() {
 
         User currentUser = createUser();
 
         Book existingBook = createBook();
 
-        ReadingEntry existingReadingEntry = new ReadingEntry(
-                UUID.fromString("b82780fe-c934-40e1-887e-9a0afa0dce91"),
-                currentUser,
-                existingBook,
-                ReadingStatus.TO_READ,
-                null,
-                null,
-                null,
-                null,
-                null,
-                Instant.now(),
-                Instant.now()
-        );
+        ReadingEntry existingReadingEntry = createReadingEntry(currentUser, existingBook);
 
-        UpdateReadingEntryNotesRequest request = new UpdateReadingEntryNotesRequest(
-                null,
-                "Have to read this before summer ends"
-        );
+        UpdateReadingEntryReviewRequest request = new UpdateReadingEntryReviewRequest("");
 
         when(authenticatedUserService.getCurrentUser()).thenReturn(currentUser);
         when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
-        when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ReadingEntry response = readingEntryService.updateReadingEntryNotes(existingReadingEntry.getId(), request);
+        assertThatThrownBy(() -> readingEntryService.updateReadingEntryReview(existingReadingEntry.getId(), request))
+                .isInstanceOf(InvalidReadingEntryException.class)
+                .hasMessageContaining("Review must not be blank.");
 
-        assertThat(response.getReview()).isEqualTo(request.review());
-        assertThat(response.getNotes()).isEqualTo(request.notes());
-        assertThat(response.getUpdated()).isNotNull();
-
-        verify(readingEntryRepository).save(existingReadingEntry);
+        verify(readingEntryRepository, never()).save(any(ReadingEntry.class));
     }
+
+//    Reading notes:
+//      - allow notes for every ReadingStatus
+//      - verify TO_READ entries can create notes
 
     @Test
     void updateReadingEntry_shouldClearReview_whenStatusChangesToToRead() {
@@ -483,7 +458,6 @@ class ReadingEntryServiceImplTest {
                 ReadingStatus.FINISHED,
                 6,
                 "Great book, bad ending. Would recommend.",
-                "Have to read this before summer ends",
                 LocalDate.parse("2025-01-15"),
                 LocalDate.parse("2025-02-01"),
                 Instant.now(),
@@ -501,17 +475,52 @@ class ReadingEntryServiceImplTest {
         when(readingEntryRepository.findByIdAndUser_Id(existingReadingEntry.getId(), currentUser.getId())).thenReturn(Optional.of(existingReadingEntry));
         when(readingEntryRepository.save(any(ReadingEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        Instant previousUpdated = existingReadingEntry.getUpdated();
+
         ReadingEntry response = readingEntryService.updateReadingEntry(existingReadingEntry.getId(), request);
 
         assertThat(response.getStatus()).isEqualTo(request.status());
         assertThat(response.getRating()).isEqualTo(request.rating());
         assertThat(response.getStartedAt()).isEqualTo(request.startedAt());
         assertThat(response.getFinishedAt()).isEqualTo(request.finishedAt());
-        assertThat(response.getUpdated()).isNotNull();
+        assertThat(response.getUpdated()).isAfterOrEqualTo(previousUpdated);
         assertThat(response.getReview()).isNull();
-        assertThat(response.getNotes()).isEqualTo("Have to read this before summer ends");
 
         verify(readingEntryRepository).save(existingReadingEntry);
+    }
+
+    @Test
+    void addNote_shouldSynchronizeBothSidesOfRelationship() {
+        ReadingEntry readingEntry = createReadingEntry(
+                createUser(),
+                createBook()
+        );
+
+        ReadingNote note = createReadingNote();
+
+        readingEntry.addNote(note);
+
+        assertThat(readingEntry.getNotes())
+                .containsExactly(note);
+
+        assertThat(note.getReadingEntry())
+                .isEqualTo(readingEntry);
+    }
+
+    @Test
+    void removeNote_shouldSynchronizeBothSidesOfRelationship() {
+        ReadingEntry readingEntry = createReadingEntry(
+                createUser(),
+                createBook()
+        );
+
+        ReadingNote note = createReadingNote();
+        readingEntry.addNote(note);
+
+        readingEntry.removeNote(note);
+
+        assertThat(readingEntry.getNotes()).isEmpty();
+        assertThat(note.getReadingEntry()).isNull();
     }
 
     @Test

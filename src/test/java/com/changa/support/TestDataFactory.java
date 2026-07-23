@@ -6,6 +6,7 @@ import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
 import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
 import com.changa.reading.domain.entity.ReadingEntry;
+import com.changa.reading.domain.entity.ReadingNote;
 import com.changa.reading.domain.entity.ReadingStatus;
 import com.changa.user.domain.entity.User;
 import org.springframework.http.MediaType;
@@ -62,9 +63,16 @@ public final class TestDataFactory {
                 ReadingStatus.FINISHED,
                 6,
                 null,
-                null,
                 LocalDate.parse("2025-01-15"),
                 LocalDate.parse("2025-02-01"),
+                Instant.now(),
+                Instant.now()
+        );
+    }
+
+    public static ReadingNote createReadingNote() {
+        return new ReadingNote(
+               "Must finish this book before the summer ends." ,
                 Instant.now(),
                 Instant.now()
         );

@@ -5,6 +5,7 @@ import com.changa.reading.domain.entity.ReadingStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public record ReadingEntryDto(
@@ -51,10 +52,9 @@ public record ReadingEntryDto(
         String review,
 
         @Schema(
-                description = "User's private notes about the book.",
-                example = "Must finish this book before the end of the summer."
+                description = "User's private reading notes, ordered chronologically."
         )
-        String notes,
+        List<ReadingNoteDto> notes,
 
         @Schema(
                 description = "User's reading start date.",
