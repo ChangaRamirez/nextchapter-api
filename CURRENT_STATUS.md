@@ -4,13 +4,13 @@ Status date: **2026-10-25**. This report covers the backend baseline; update it 
 
 ## Integration and completed work
 
-- Local `main`: `55bb9a60a0ad4ff3d83ff2940a613af86ee75828`.
-- Verified tree: `da7e9ec1f90a54c2be11752abbd1143c7df52645`.
-- Four feature commits were integrated by local fast-forward: user roles, catalog metadata, ReadingNote extraction, and completed private note lifecycle (**NC-BE-001**).
-- Backend changes are integrated locally but have not been pushed. At this assessment, `main` is four commits ahead of `origin/main`; the feature branch is one ahead of `origin/feat/domain-redesign`. This documentation task did not fetch; remote-tracking refs are evidence from the preceding integration fetch, not a new remote check.
-- **NC-DOC-001:** the four knowledge documents are drafted on `docs/project-knowledge-baseline`, based on the integration commit, awaiting human review; no documentation commit or push has been made.
+- Published baseline and synchronized local/remote `main`: `f4c454b51e45a02f202ec9715241450eb98f9ce5`.
+- Verified tree: `4a612d27f40a657bc889c150fe6940c5372d9fcd`.
+- **NC-BE-001 completed and integrated:** four feature commits introduced user roles, catalog metadata, ReadingNote extraction, and the completed private note lifecycle, ending at `55bb9a60a0ad4ff3d83ff2940a613af86ee75828`.
+- **NC-DOC-001 completed:** the four knowledge documents were architecturally reviewed, committed as `f4c454b`, integrated into `main`, and published to GitHub.
+- During NC-DOC-002, a live `git ls-remote` check confirmed GitHub's `main` at the published baseline in `ChangaRamirez/nextchapter-api`; local `main` and `origin/main` match. The original feature branch remains one commit ahead of its remote-tracking counterpart; its completed work is already included in published `main`.
 
-The original feature worktree retains an unrelated unstaged Lombok addition in `pom.xml`, untracked `.stignore`, the historical `CURRENT_STATUS.md`, and six untracked `.DS_Store` files. They are excluded from the integration/documentation baseline and preserved. The old status report was consulted as historical material; this file is a new document in the isolated documentation worktree.
+The original feature worktree retains an unrelated unstaged Lombok addition in `pom.xml`, untracked `.stignore`, the historical `CURRENT_STATUS.md`, and eight untracked `.DS_Store` files. These changes remain preserved and excluded from the published baseline and this handoff update. The historical status report has not been overwritten; this tracked report is being updated in an isolated worktree.
 
 ## Implemented capabilities
 
@@ -20,7 +20,7 @@ NC-BE-001 fixed note JSON 404 handling, parent timestamps on note deletion, blan
 
 ## Test evidence and limits
 
-**Prior execution, not rerun for this documentation task:** `sh ./mvnw test -B -ntp` ran in the isolated local-main integration worktree on Java 25 (Temurin 25.0.3): **135 tests, 0 failures, 0 errors, 0 skips**, across 10 suites. The existing Surefire XML totals were rechecked while drafting these documents. Earlier feature validation also included two successful complete-suite runs and exact staged-snapshot testing.
+**Last backend validation:** `sh ./mvnw test -B -ntp` ran against approved code baseline `55bb9a60a0ad4ff3d83ff2940a613af86ee75828` in the isolated local-main integration worktree on Java 25 (Temurin 25.0.3): **135 tests, 0 failures, 0 errors, 0 skips**, across 10 suites. NC-DOC-001 changed documentation only, and no new backend test run followed those changes or was performed for NC-DOC-002. Existing Surefire XML totals were rechecked during NC-DOC-001 drafting. Earlier feature validation also included two successful complete-suite runs and exact staged-snapshot testing.
 
 - H2 tests disable Flyway and use Hibernate-generated `create-drop` schema in MySQL compatibility mode. No real MySQL integration test has verified Flyway migrations, including V4 data conversion and database cascade behavior.
 - Repeated sequential passes do not prove arbitrary test-order or parallel-execution independence. Integration classes share a named database; cleanup respects foreign-key dependencies but parallel isolation remains unverified.
@@ -30,7 +30,7 @@ NC-BE-001 fixed note JSON 404 handling, parent timestamps on note deletion, blan
 
 ## Pending work and risks
 
-1. **Next recommended task: NC-BE-002 — role-based catalog authorization.** `USER`/`ADMIN` roles exist, but the JWT principal has no authorities and catalog writes require only authentication. Implement the approved administrator-managed write boundary after review; define administrator provisioning and update fixtures that currently create books as ordinary users. Keep private reading ownership intact.
+1. **Next recommended engineering task: NC-BE-002 — Role-Based Catalog Authorization.** `USER`/`ADMIN` roles exist, but the JWT principal has no authorities and catalog writes require only authentication. Implement the approved administrator-managed write boundary after review; define administrator provisioning and update fixtures that currently create books as ordinary users. Keep private reading ownership intact.
 2. External metadata fields and `MANUAL`/`OPEN_LIBRARY` provider values exist; provider integration, import and refresh do not. Adapter architecture is accepted; implementation policy remains to be designed.
 3. Add real MySQL/Flyway verification and investigate test-order/parallel isolation in separately approved work. Do not infer either from H2 success.
 4. The service checks duplicate user/book entries, but the database has no corresponding uniqueness constraint; concurrent creation remains a data-integrity risk requiring review.
@@ -50,4 +50,4 @@ The following existing documents/configuration were reviewed and left unchanged:
 | [backend-v2-design.md](docs/backend-v2-design.md) | Still Draft. Roles, metadata and basic notes have partly overtaken its roadmap; public catalog routes, provider flows, extra note fields, synchronization and community features are not implemented or automatically approved. Its proposed user/book uniqueness constraint is absent from migrations. |
 | [.env.example](.env.example) | Uses `JPA_DDL_AUTO=update`, whereas application properties default to `validate`; runtime schema ownership needs configuration review. |
 
-Accepted architecture is recorded in [DECISIONS.md](DECISIONS.md); the nine supplied decisions do not approve every proposal in the older draft. Documentation reconciliation, administrator provisioning, and provider policy remain review topics, not authorization to implement them during NC-DOC-001.
+Accepted architecture is recorded in [DECISIONS.md](DECISIONS.md); the nine supplied decisions do not approve every proposal in the older draft. Documentation reconciliation, administrator provisioning, and provider policy remain review topics, not authorization to implement them during NC-DOC-002.
