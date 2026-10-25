@@ -3,6 +3,7 @@ package com.changa.auth.controller;
 import com.changa.auth.dto.LoginRequestDto;
 import com.changa.auth.dto.RegisterRequestDto;
 import com.changa.user.repository.UserRepository;
+import com.changa.reading.repository.ReadingEntryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
@@ -31,8 +32,12 @@ public class AuthControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ReadingEntryRepository readingEntryRepository;
+
     @BeforeEach
     void setUp() {
+        readingEntryRepository.deleteAll();
         userRepository.deleteAll();
     }
 

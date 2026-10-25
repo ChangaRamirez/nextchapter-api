@@ -324,8 +324,8 @@ public class ReadingEntryController {
     }
 
     @Operation(
-            summary = "Update reading entry's notes and review",
-            description = "Update existing reading entry's notes and review fields from authenticated user's personal reading list. If review is provided, status must be FINISHED or ABANDONED."
+            summary = "Update reading entry's review",
+            description = "Update existing reading entry's review from authenticated user's personal reading list. If review is provided, status must be FINISHED or ABANDONED."
     )
     @ApiResponses({
             @ApiResponse(

@@ -2,7 +2,9 @@ package com.changa.support;
 
 import com.changa.auth.dto.RegisterRequestDto;
 import com.changa.book.domain.dto.CreateBookRequestDto;
+import com.changa.reading.domain.CreateReadingNoteRequest;
 import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
+import com.changa.reading.domain.dto.CreateReadingNoteRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -72,5 +74,20 @@ public abstract class BaseIntegrationTest {
         JsonNode createReadingEntryNode = jsonMapper.readTree(createReadingEntryJsonContent);
 
         return UUID.fromString(createReadingEntryNode.get("id").asText());
+    }
+
+    protected UUID createReadingNoteAndReturnId(String token, UUID readingEntryId, CreateReadingNoteRequestDto request) throws Exception {
+
+        MvcResult createReadingNoteResult = mockMvc.perform(post("/api/v1/reading-entries/{readingEntryId}/notes", readingEntryId)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated()).andReturn();
+
+        String createdReadingNoteJsonContent = createReadingNoteResult.getResponse().getContentAsString();
+
+        JsonNode createReadingNoteNode = jsonMapper.readTree(createdReadingNoteJsonContent);
+
+        return UUID.fromString(createReadingNoteNode.get("id").asText());
     }
 }

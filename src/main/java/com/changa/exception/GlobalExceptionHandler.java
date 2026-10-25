@@ -87,6 +87,12 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    @ExceptionHandler(ReadingNoteNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleReadingNoteNotFoundException(ReadingNoteNotFoundException ex) {
+
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     private ResponseEntity<ErrorResponseDto> error(HttpStatus status, String message) {
         return ResponseEntity
                 .status(status)

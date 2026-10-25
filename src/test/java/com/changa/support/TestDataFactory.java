@@ -5,6 +5,7 @@ import com.changa.book.domain.dto.CreateBookRequestDto;
 import com.changa.book.domain.entity.Book;
 import com.changa.book.domain.entity.BookGenre;
 import com.changa.reading.domain.dto.CreateReadingEntryRequestDto;
+import com.changa.reading.domain.dto.CreateReadingNoteRequestDto;
 import com.changa.reading.domain.entity.ReadingEntry;
 import com.changa.reading.domain.entity.ReadingNote;
 import com.changa.reading.domain.entity.ReadingStatus;
@@ -72,6 +73,7 @@ public final class TestDataFactory {
 
     public static ReadingNote createReadingNote() {
         return new ReadingNote(
+                UUID.fromString("404b105f-69d8-4823-86dc-2443617df363"),
                "Must finish this book before the summer ends." ,
                 Instant.now(),
                 Instant.now()
@@ -111,5 +113,10 @@ public final class TestDataFactory {
                 null,
                 null
         );
+    }
+
+    public static CreateReadingNoteRequestDto defaultCreateReadingNoteRequest() {
+
+        return new CreateReadingNoteRequestDto("Must finish this book before the summer ends.");
     }
 }

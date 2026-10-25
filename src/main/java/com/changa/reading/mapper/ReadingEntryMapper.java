@@ -19,7 +19,6 @@ public interface ReadingEntryMapper {
     @Mapping(target = "bookTitle", source = "book.title")
     ReadingEntryDto toDto(ReadingEntry readingEntry);
 
-    ReadingNoteDto toDto(ReadingNote readingNote);
 
     UpdateReadingEntryRequest fromDto(UpdateReadingEntryRequestDto dto);
 

@@ -30,7 +30,8 @@ public class ReadingNote {
     public ReadingNote() {
     }
 
-    public ReadingNote(String content, Instant created, Instant updated) {
+    public ReadingNote(UUID id, String content, Instant created, Instant updated) {
+        this.id = id;
         this.content = content;
         this.created = created;
         this.updated = updated;

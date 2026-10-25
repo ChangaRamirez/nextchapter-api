@@ -8,6 +8,7 @@ import com.changa.book.domain.entity.BookProvider;
 import com.changa.book.repository.BookRepository;
 import com.changa.support.BaseIntegrationTest;
 import com.changa.user.repository.UserRepository;
+import com.changa.reading.repository.ReadingEntryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,12 @@ public class BookControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ReadingEntryRepository readingEntryRepository;
+
     @BeforeEach
     void setUp() {
+        readingEntryRepository.deleteAll();
         bookRepository.deleteAll();
         userRepository.deleteAll();
     }
